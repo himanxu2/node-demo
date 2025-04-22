@@ -1,0 +1,28 @@
+steps:
+  # Install dependencies and build
+  - name: "gcr.io/cloud-builders/npm"
+    args: ["install"]
+
+  # Copy files to Compute Engine VM
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      - compute
+      - scp
+      - --recurse
+      - ./
+      - nodejs-vm:/home/$USER/app
+      - --zone=us-central1-a
+
+  # Restart the app
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      - compute
+      - ssh
+      - nodejs-vm
+      - --zone=us-central1-a
+      - --command
+      - |
+        cd node-demo &&
+        npm install &&
+        pm2 stop dist/index.js || true &&
+        pm2 start dist/index.js
